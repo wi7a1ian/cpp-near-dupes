@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "span": "cpp",
+        "unordered_set": "cpp"
     }
 }
