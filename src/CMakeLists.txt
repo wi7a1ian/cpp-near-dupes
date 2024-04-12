@@ -8,8 +8,9 @@ set_target_properties(NearDupes.App
     CXX_STANDARD_REQUIRED ON
   )
 target_link_libraries(NearDupes.App 
-    PRIVATE
-        murmurhash
-        csv
-        lmdb
-        lmdbxx)
+  PRIVATE
+    murmurhash
+    csv
+    lmdb
+    lmdbxx
+  )

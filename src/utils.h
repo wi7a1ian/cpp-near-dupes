@@ -4,7 +4,7 @@
 #include <array>
 #include <vector>
 #include <span>
-#include "lmdb++.h"
+#include <lmdb++.h>
 
 
 #ifdef _DEBUG
@@ -24,18 +24,18 @@ inline auto to_val(const std::string_view& str)
     return lmdb::val(str.data(), str.size());
 }
 
+template<typename T>
+inline auto to_val(const std::vector<T>& vec)
+{
+    return lmdb::val(vec.data(), vec.size() * sizeof(T));
+}
+
 //template<typename T, typename std::enable_if<std::is_integral_v<T>, int>::type = 0>
 template<typename T, typename = std::enable_if<std::is_integral_v<T>>>
 inline auto to_key(T& id)
 {
     std::reverse(reinterpret_cast<uint8_t*>(&id), reinterpret_cast<uint8_t*>(&id) + sizeof(T));
     return lmdb::val(&id, sizeof(T));
-}
-
-template<typename T>
-inline auto to_val(const std::vector<T>& vec)
-{
-    return lmdb::val(vec.data(), vec.size() * sizeof(T));
 }
 
 template<typename T = uint32_t>

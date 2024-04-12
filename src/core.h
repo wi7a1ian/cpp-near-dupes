@@ -20,8 +20,8 @@
 #include <chrono>
 #include <cctype>
 #include <filesystem>
+#include <MurMurHash3.h>
 #include "utils.h"
-#include "MurMurHash3.h"
 
 const size_t random_seed = 71; // vert sensitive, causes hash collisions, hence increasing cp amount
 const size_t signature_size = 256;
