@@ -11,6 +11,5 @@ target_link_libraries(NearDupes.App
   PRIVATE
     murmurhash
     csv
-    lmdb
     lmdbxx
   )

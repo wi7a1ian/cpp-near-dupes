@@ -2,6 +2,7 @@
 
 # csv-parser
 # https://github.com/vincentlaucsb/csv-parser
+# git submodule add https://github.com/vincentlaucsb/csv-parser ./third_party/csv-parser
 #add_subdirectory(csv-parser)
 add_library(csv INTERFACE)
 target_include_directories(csv INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/csv-parser/single_include)
@@ -18,7 +19,9 @@ target_link_libraries(murmurhash PRIVATE project_options)
 # https://github.com/drycpp/lmdbxx
 # git submodule add https://github.com/LMDB/lmdb ./third_party/lmdb
 set(LMDB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lmdb/libraries/liblmdb)
-add_library(lmdb STATIC ${LMDB_INCLUDE_DIR})
+add_library(lmdb STATIC 
+    ${LMDB_INCLUDE_DIR}/mdb.c
+    ${LMDB_INCLUDE_DIR}/midl.c)
 target_include_directories(lmdb PUBLIC ${LMDB_INCLUDE_DIR})
 set_target_properties(lmdb PROPERTIES 
     LINKER_LANGUAGE CXX)
