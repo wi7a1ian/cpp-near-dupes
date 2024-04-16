@@ -27,13 +27,13 @@ using namespace std;
 int main()
 {
 	const float similarity_threshold = 0.80f;
-    csv::CSVReader reader(R"|(enron100k.csv)|");
+    csv::CSVReader reader(R"|(/workspaces/cpp-near-dupes/data/enron100k.csv)|");
 
     // todo: add sampling that enable setting up shingle size, i.e choose 1k docs and compare against various shingle sizes 
 
     auto env = lmdb::env::create();
     env.set_mapsize(1UL * 1024UL * 1024UL * 1024UL);
-    env.open(R"|(ndd-enron-100k)|", MDB_FIXEDMAP, 0664);
+    env.open(R"|(/tmp/ndd-enron-100k)|", MDB_FIXEDMAP, 0664);
 
     using namespace std::chrono;
     auto start = steady_clock::now();
