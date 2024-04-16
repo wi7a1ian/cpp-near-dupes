@@ -1,6 +1,7 @@
 ﻿cmake_minimum_required (VERSION 3.8 FATAL_ERROR)
 
-project ("NearDupes" LANGUAGES CXX)
+project ("NearDupes") # LANGUAGES CXX) We will not only use C++ because LMDB is C
+#set(CMAKE_CXX_STANDARD 20) # Force C++20 stardard for all targets
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
@@ -13,9 +14,8 @@ message(STATUS "C++ flags, Release configuration: ${CMAKE_CXX_FLAGS_RELEASE}")
 message(STATUS "C++ flags, Release configuration with Debug info: ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 message(STATUS "C++ flags, minimal Release configuration: ${CMAKE_CXX_FLAGS_MINSIZEREL}")
 
-add_library(project_options INTERFACE)
-target_compile_features(project_options INTERFACE cxx_std_20)
-target_precompile_headers( project_options INTERFACE
+add_library(global_pch_n_options INTERFACE)
+target_precompile_headers( global_pch_n_options INTERFACE
     <cassert>
     <cmath>
     <vector>
@@ -35,6 +35,5 @@ target_precompile_headers( project_options INTERFACE
     <cctype>
     <filesystem>)
 
-# Include sub-projects.
 add_subdirectory(third_party)
 add_subdirectory (src)
