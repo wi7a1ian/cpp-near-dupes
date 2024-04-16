@@ -29,7 +29,7 @@ int main()
 	const float similarity_threshold = 0.80f;
     csv::CSVReader reader(R"|(/workspaces/cpp-near-dupes/data/enron100k.csv)|");
 
-    // todo: add sampling that enable setting up shingle size, i.e choose 1k docs and compare against various shingle sizes 
+    // TODO: add sampling that enable setting up shingle size, i.e choose 1k docs and compare against various shingle sizes 
 
     auto env = lmdb::env::create();
     env.set_mapsize(1UL * 1024UL * 1024UL * 1024UL);
@@ -40,7 +40,7 @@ int main()
     auto wtxn = lmdb::txn::begin(env);
     auto dbi = lmdb::dbi::open(wtxn, nullptr);
 
-    similarity::iterate_input_action iterate_records = [&](similarity::parse_input_action parse) {
+    similarity::iterate_input_action iterate_csv_records = [&](similarity::parse_input_action parse) {
         for (csv::CSVRow& row : reader)
         {
             auto docid = row[0].get_sv();
@@ -49,11 +49,52 @@ int main()
             parse(docid, doctext);
         }
     };
-    similarity::put_record_func put_record = [&](auto key, const auto& value) { return dbi.put(wtxn, key, to_val(value)); };
 
-    similarity::doc_cacher cacher;
-    cacher.add_documents(iterate_records, put_record);
+    // TODO: ensure records are appended, not inserted
+    // docs: http://www.lmdb.tech/doc/group__internal.html#ga4fa8573d9236d54687c61827ebf8cac0
+    similarity::put_record_func put_record = [&](auto key, const auto& value) { return dbi.put(wtxn, to_key(key), to_val(value)); };
+
+    similarity::doc_cacher cache;
+    cache.add_documents(iterate_csv_records, put_record);
     wtxn.commit();
     std::cout << "min-hash time in seconds : " << duration_cast<seconds>(steady_clock::now() - start).count() << " sec" << std::endl;
+
+    start = steady_clock::now();
+    auto rtxn = lmdb::txn::begin(env, nullptr, MDB_RDONLY);
+    dbi = lmdb::dbi::open(rtxn, nullptr);
+
+    similarity::iterate_records_action iterate_cache_records = [&](similarity::parse_record_action parse) {
+        auto cursor = lmdb::cursor::open(rtxn, dbi);
+        lmdb::val key{}, value{};
+        while (cursor.get(key, value, MDB_NEXT))
+        {
+            parse(from_key(key), to_span<uint32_t>(value));
+        }
+        cursor.close();
+    };
+
+    similarity::seek_record_func seek_record = [&](auto key) {
+        lmdb::val v; dbi.get(rtxn, to_key(key), v); return to_span<uint32_t>(v);
+    };
+    
+    std::cout << "nr of records : " << dbi.size(rtxn) << std::endl;
+    auto groups = similarity::find_near_dupes(iterate_cache_records, dbi.size(rtxn), seek_record, similarity_threshold);
+
+    std::cout << "lsh time in seconds : " << duration_cast<seconds>(steady_clock::now() - start).count() << " sec" << std::endl;
+    rtxn.abort();
+    
+    std::ofstream myfile;
+    myfile.open(R"|(/tmp/ndd-enron-100k.out.csv)|");
+    myfile << "DocA, DocB, Similarity" << std::endl;
+    int falsePositives{};
+    for (const auto& group : groups) {
+        myfile << cache.get_id_for(group.first) << ", " << cache.get_id_for(group.first) << ", 1 \n";
+        for (const auto& near_dupes : group.second)
+        {
+            myfile << cache.get_id_for(group.first) << ", " << cache.get_id_for(near_dupes.first) << ", " << near_dupes.second << "\n";
+        }
+    }
+
+    myfile.close();
 }
 

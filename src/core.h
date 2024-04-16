@@ -23,7 +23,7 @@
 #include <MurMurHash3.h>
 #include "utils.h"
 
-const size_t random_seed = 71; // vert sensitive, causes hash collisions, hence increasing cp amount
+const size_t random_seed = 71; // very sensitive, causes hash collisions, hence increasing cp amount
 const size_t signature_size = 256;
 const size_t shingle_size = 3;
 

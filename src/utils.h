@@ -6,7 +6,6 @@
 #include <span>
 #include <lmdb++.h>
 
-
 #ifdef _DEBUG
 constexpr bool debug_mode = true;
 #else
