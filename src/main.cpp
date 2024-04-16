@@ -33,7 +33,7 @@ int main()
 
     auto env = lmdb::env::create();
     env.set_mapsize(1UL * 1024UL * 1024UL * 1024UL);
-    env.open(R"|(/tmp/ndd-enron-100k)|", MDB_FIXEDMAP, 0664);
+    env.open(R"|(/tmp/ndd-cache)|", MDB_FIXEDMAP, 0664);
 
     using namespace std::chrono;
     auto start = steady_clock::now();
@@ -56,8 +56,9 @@ int main()
 
     similarity::doc_cacher cache;
     cache.add_documents(iterate_csv_records, put_record);
+    std::cout << "Min-hash took " << duration_cast<seconds>(steady_clock::now() - start).count() << " sec" << std::endl;
+    std::cout << "Processed " << dbi.size(wtxn) << " records" << std::endl;
     wtxn.commit();
-    std::cout << "min-hash time in seconds : " << duration_cast<seconds>(steady_clock::now() - start).count() << " sec" << std::endl;
 
     start = steady_clock::now();
     auto rtxn = lmdb::txn::begin(env, nullptr, MDB_RDONLY);
@@ -77,14 +78,14 @@ int main()
         lmdb::val v; dbi.get(rtxn, to_key(key), v); return to_span<uint32_t>(v);
     };
     
-    std::cout << "nr of records : " << dbi.size(rtxn) << std::endl;
     auto groups = similarity::find_near_dupes(iterate_cache_records, dbi.size(rtxn), seek_record, similarity_threshold);
 
-    std::cout << "lsh time in seconds : " << duration_cast<seconds>(steady_clock::now() - start).count() << " sec" << std::endl;
+    std::cout << "LSH took " << duration_cast<seconds>(steady_clock::now() - start).count() << " sec" << std::endl;
+    std::cout << "Produced " << groups.size() << " records" << std::endl;
     rtxn.abort();
-    
+
     std::ofstream myfile;
-    myfile.open(R"|(/tmp/ndd-enron-100k.out.csv)|");
+    myfile.open(R"|(/tmp/ndd-groups.out.csv)|");
     myfile << "DocA, DocB, Similarity" << std::endl;
     int falsePositives{};
     for (const auto& group : groups) {

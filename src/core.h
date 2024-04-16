@@ -24,7 +24,7 @@
 #include "utils.h"
 
 const size_t random_seed = 71; // very sensitive, causes hash collisions, hence increasing cp amount
-const size_t signature_size = 256;
+const size_t signature_size = 256; // 192 is a good balance between speed and accuracy when comparing documents, band count should be eq to 6
 const size_t shingle_size = 3;
 
 namespace similarity
@@ -291,12 +291,9 @@ namespace similarity
         auto [band_cnt, row_cnt] = lsh_bands_n_rows(signature_size, similarity_threshold);
         TLshIndex lsh(band_cnt, row_cnt);
 
-        if constexpr (debug_mode)
-        {
-            std::cout << "Using " << band_cnt << " and " << row_cnt << " rows" << std::endl;
-            std::cout << "About " << std::setprecision(2) << (lsh_false_negatives_prob(band_cnt, row_cnt, similarity_threshold) * 100) << "% of the " << similarity_threshold * 100 << "%-similar pairs will be false negatives " << std::endl;
-            std::cout << "We should find " << std::setprecision(2) << (lsh_cp_probability(band_cnt, row_cnt, similarity_threshold) * 100) << "% pairs of truly similar documents" << std::endl;
-        }
+        std::cout << "Using " << band_cnt << " bands and " << row_cnt << " rows" << std::endl;
+        std::cout << "About " << std::setprecision(2) << (lsh_false_negatives_prob(band_cnt, row_cnt, similarity_threshold) * 100) << "% of the " << similarity_threshold * 100 << "%-similar pairs will be false negatives " << std::endl;
+        std::cout << "We should find " << std::setprecision(2) << (lsh_cp_probability(band_cnt, row_cnt, similarity_threshold) * 100) << "% pairs of truly similar documents" << std::endl;
 
         vector<size_t> doc_size_xref(record_count);
         iterate_records([&, i = 0](auto idx, auto shingles) mutable { doc_size_xref.at(i++) = static_cast<uint32_t>(shingles.size()); });

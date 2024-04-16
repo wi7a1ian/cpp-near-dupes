@@ -15,6 +15,6 @@
 			]
 		}
 	},
-	"postCreateCommand": "bunzip2 -k /workspaces/cpp-near-dupes/data/enron100k.csv.bz2 && mkdir /tmp/ndd-enron-100k",
+	"postCreateCommand": "bunzip2 -k /workspaces/cpp-near-dupes/data/enron100k.csv.bz2 && mkdir /tmp/ndd-cache",
 	"remoteUser": "vscode"
 }
